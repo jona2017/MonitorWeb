@@ -10,33 +10,74 @@
                 <h4 class="card-title">Selecciones rango de fechas a visualizar en las graficas</h4>
                 <div class="card-body">
                     <div class="row button-group">
-                        <div class="row col-md-6">
-                            <div class="col-md-6">
+                        <div class="row col-md-3">
+                            
                                 <label>Fecha desde</label>
                                 <div class="input-group">
                                     <input id="DateFrom" type="date" value="@ViewBag.DateFrom.ToString("yyyy-MM-dd")" />
                                 </div>
-                            </div>
                             
+
                         </div>
 
+                        <div class="row col-md-3">
+                            
+                                <label>Fecha desde</label>
+                                <div class="input-group">
+                                    <input id="DateFrom" type="date" value="@ViewBag.DateFrom.ToString("yyyy-MM-dd")" />
+                                </div>
+                            
 
+                        </div>
                     </div>
                 </div>
+
+                <div id="example5.2" style="height:auto;"></div>
             </div>
         </div>
         <div class="col-md-12">
             <div id="chart_div"></div>
         </div>
     </div>
-    
+
 
 </div>
 
+<script type="text/javascript">
+    google.charts.load("current", { packages: ["timeline"] });
+    google.charts.setOnLoadCallback(drawChart);
+    function drawChart() {
 
+        var container = document.getElementById('example5.2');
+        var chart = new google.visualization.Timeline(container);
+        var dataTable = new google.visualization.DataTable();
+
+        dataTable.addColumn({ type: 'string', id: 'Room' });
+        dataTable.addColumn({ type: 'string', id: 'Name' });
+        dataTable.addColumn({ type: 'date', id: 'Start' });
+        dataTable.addColumn({ type: 'date', id: 'End' });
+        dataTable.addRows([
+            ['Magnolia Room', 'CSS Fundamentals', new Date(0, 0, 0, 12, 0, 0), new Date(0, 0, 0, 14, 0, 0)],
+            ['Magnolia Room', 'Intro JavaScript', new Date(0, 0, 0, 14, 30, 0), new Date(0, 0, 0, 16, 0, 0)],
+            ['Magnolia Room', 'Advanced JavaScript', new Date(0, 0, 0, 16, 30, 0), new Date(0, 0, 0, 19, 0, 0)],
+            ['Gladiolus Room', 'Intermediate Perl', new Date(0, 0, 0, 12, 30, 0), new Date(0, 0, 0, 14, 0, 0)],
+            ['Gladiolus Room', 'Advanced Perl', new Date(0, 0, 0, 14, 30, 0), new Date(0, 0, 0, 16, 0, 0)],
+            ['Gladiolus Room', 'Applied Perl', new Date(0, 0, 0, 16, 30, 0), new Date(0, 0, 0, 18, 0, 0)],
+            ['Petunia Room', 'Google Charts', new Date(0, 0, 0, 12, 30, 0), new Date(0, 0, 0, 14, 0, 0)],
+            ['Petunia Room', 'Closure', new Date(0, 0, 0, 14, 30, 0), new Date(0, 0, 0, 16, 0, 0)],
+            ['Petunia Room', 'App Engine', new Date(0, 0, 0, 16, 30, 0), new Date(0, 0, 0, 18, 30, 0)]]);
+
+        var options = {
+            timeline: { singleColor: '#43EBEB' },
+        };
+
+        chart.draw(dataTable, options);
+    }
+</script>
 
 
 <script>
+    //#43EBEB
     jQuery(document).ready(async function () {
         function ReportGantt(parameter) {
             fetch('/ReportGantt/NewChart', {
@@ -46,7 +87,7 @@
                     'Content-Type': 'application/json'
                 }
             }).then(response => response.json())
-              .then(data => drawChart(data));
+                .then(data => drawChart(data));
 
             google.charts.load("current", { packages: ["timeline"] });
             google.charts.setOnLoadCallback(drawChart);
@@ -56,9 +97,9 @@
                     User: []
                 };
                 console.log(data);
-                for (var i = 0; i < data.length; i++) {                
-                var dataG = JSON.parse(data[i]);
-                    userData['User'].push({ "User": dataG.User, "Date": dataG.Date, "TimeImpro": dataG.TimeImpro});              
+                for (var i = 0; i < data.length; i++) {
+                    var dataG = JSON.parse(data[i]);
+                    userData['User'].push({ "User": dataG.User, "Date": dataG.Date, "TimeImpro": dataG.TimeImpro });
                 }
                 console.log(dataG);
                 var container = document.getElementById('chart_div');
@@ -68,10 +109,10 @@
                 dataTable.addColumn({ type: 'string', id: 'Name' });
                 dataTable.addColumn({ type: 'date', id: 'Start' });
                 dataTable.addColumn({ type: 'date', id: 'End' });
-               
+
                 for (let i = 0; i < userData.User.length; i++) {
                     let tiempo = userData.User[i].Date.sort();
-                    let horainicio = tiempo[0].split(":");                    
+                    let horainicio = tiempo[0].split(":");
                     let tiempoF = tiempo[userData.User[i].Date.length - 1];
                     let horafin = tiempoF.split(":");
                     let tiempoImpro = userData.User[i].TimeImpro.sort();
@@ -81,42 +122,42 @@
                         horainicioImpro = tiempoImpro[0].split(":");
                         let tiempoFImpro = tiempoImpro[userData.User[i].TimeImpro.length - 1];
                         horafinImpro = tiempoFImpro.split(":");
-                        
+
                     }
                     console.log(tiempo);
-                   if (tiempoImpro.length != 0) {
-                    dataTable.addRows([
-                        [userData.User[i].User, userData.User[i].Application, new Date(0, 0, 0, horafinImpro[0] <= horafin[0] ? horafinImpro[0] : horafin[0], horafinImpro[0] <= horafin[0] ? horafinImpro[1] : horafin[1], horafinImpro[0] <= horafin[0] ? horafinImpro[2] : horafin[2]), new Date(0, 0, 0, horafin[0] >= horafinImpro[0] ? horafin[0] : horafinImpro[0], horafin[0] >= horafinImpro[0] ? horafin[1] : horafinImpro[1], horafin[0] >= horafinImpro[0] ? horafin[2] : horafinImpro[2])],
-                        [userData.User[i].User, userData.User[i].AppImpro, new Date(0, 0, 0, horainicioImpro[0] <= horainicio[0] ? horainicio[0] : horainicioImpro[0], horainicio[0] <= horainicioImpro[0] ? horainicio[1] : horainicioImpro[1], horainicio[0] <= horainicioImpro[0] ? horainicio[2] : horainicioImpro[2]), new Date(0, 0, 0, horafinImpro[0] <= horafin[0] ? horafinImpro[0] : horafin[0], horafinImpro[0] <= horafin[0] ? horafinImpro[1] : horafin[1], horafinImpro[0] <= horafin[0] ? horafinImpro[2] : horafin[2])]
-                    ]);
-                } else {
-                    dataTable.addRows([
-                        [userData.User[i].User, 'Productivo', new Date(0, 0, 0, horainicio[0] < horafin[0] ? horainicio[0] : horafin[0], horainicio[1], horainicio[2]), new Date(0, 0, 0, horafin[0] > horainicio[0] ? horafin[0] : horainicio[0], horafin[1], horafin[2])]
+                    if (tiempoImpro.length != 0) {
+                        dataTable.addRows([
+                            [userData.User[i].User, userData.User[i].Application, new Date(0, 0, 0, horafinImpro[0] <= horafin[0] ? horafinImpro[0] : horafin[0], horafinImpro[0] <= horafin[0] ? horafinImpro[1] : horafin[1], horafinImpro[0] <= horafin[0] ? horafinImpro[2] : horafin[2]), new Date(0, 0, 0, horafin[0] >= horafinImpro[0] ? horafin[0] : horafinImpro[0], horafin[0] >= horafinImpro[0] ? horafin[1] : horafinImpro[1], horafin[0] >= horafinImpro[0] ? horafin[2] : horafinImpro[2])],
+                            [userData.User[i].User, userData.User[i].AppImpro, new Date(0, 0, 0, horainicioImpro[0] <= horainicio[0] ? horainicio[0] : horainicioImpro[0], horainicio[0] <= horainicioImpro[0] ? horainicio[1] : horainicioImpro[1], horainicio[0] <= horainicioImpro[0] ? horainicio[2] : horainicioImpro[2]), new Date(0, 0, 0, horafinImpro[0] <= horafin[0] ? horafinImpro[0] : horafin[0], horafinImpro[0] <= horafin[0] ? horafinImpro[1] : horafin[1], horafinImpro[0] <= horafin[0] ? horafinImpro[2] : horafin[2])]
+                        ]);
+                    } else {
+                        dataTable.addRows([
+                            [userData.User[i].User, 'Productivo', new Date(0, 0, 0, horainicio[0] < horafin[0] ? horainicio[0] : horafin[0], horainicio[1], horainicio[2]), new Date(0, 0, 0, horafin[0] > horainicio[0] ? horafin[0] : horainicio[0], horafin[1], horafin[2])]
 
-                    ]);
+                        ]);
+                    }
                 }
-                }
-                
 
-                
-                            
-                                    
-                
-               
+
+
+
+
+
+
                 var options = {
                     colors: ['#7E72FA', '#E06863'],
                 };
-                    chart.draw(dataTable, options);
-               
-                }
-            
+                chart.draw(dataTable, options);
+
+            }
+
         }
 
         $('#DateFrom').change(async function () {
             var parameter = {
                 dateFrom: $("#DateFrom").val(),
-                dateTo: $("#DateTo").val(),                
-            };           
+                dateTo: $("#DateTo").val(),
+            };
             await ReportGantt(parameter);
         });
         $('#DateTo').change(async function () {
@@ -126,7 +167,7 @@
             };
             await ReportGantt(parameter);
         });
-        });
+    });
 
 </script>
 
