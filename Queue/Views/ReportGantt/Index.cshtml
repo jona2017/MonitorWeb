@@ -1,0 +1,227 @@
+﻿@{ ViewBag.Title = "Home Page"; }
+
+@{
+    var ListPeriods = new List<SelectListItem>()
+{
+        new SelectListItem() { Text = "Motrar Todo", Value = "0", Selected = true},
+        new SelectListItem() { Text = "5 Minutos", Value = "5"},
+        new SelectListItem() { Text = "10 Minutos", Value = "10"},
+        new SelectListItem() { Text = "30 Minutos", Value = "30"},
+        new SelectListItem() { Text = "45 Minutos", Value = "45"},
+        new SelectListItem() { Text = "Una hora", Value = "60"},
+        new SelectListItem() { Text = "Dos horas", Value = "120"}
+    };
+}
+
+<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+<script src="~/Scripts/jquery-3.4.1.min.js"></script>
+<script src="~/Scripts/moment-with-locales.js"></script>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <h4 class="card-title">Selecciones rango de fechas a visualizar en las graficas</h4>
+                <div class="card-body">
+                    <div class="row">
+
+                        <div class="col-3">
+                            <label>Fecha</label>
+                            <div class="input-group">
+                                <input id="DateFrom" type="date" value="@DateTime.Now.ToString("yyyy-MM-dd")" />
+                            </div>
+                        </div>
+
+                        <div class=" col-3">
+                            <label>Mostrar Intervalos</label>
+                            <div class="input-group">
+                                @Html.DropDownList("ddlPeriods", ListPeriods, "", new { @class = "form-control select2", style = "width:100%;", required = "required" })
+                            </div>
+                        </div>
+
+                        <div class=" col-3">
+                            <br />
+                            <button id="btnProcesarConsulta" class="btn-sm btn-info btn-block" data-toggle="tooltip" data-placement="right" type="button">
+                                <strong>Buscar</strong>
+                                <span class="fa fa-plus-square"></span>
+                            </button>
+                        </div>
+
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+
+</div>
+
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+
+                <h4 class="card-title">Aplicaciones</h4>
+                <div class="card-body">
+                    <div class="row col-12">
+
+                        <div class="col-12">
+                            <div id="sin_Data" style="display:none">
+                                <div class="alert alert-danger">
+                                    <strong>Sin registros!</strong> No hay datos disponibles para la fecha seleccionada
+                                </div>
+                            </div>
+                            <div id="chart_div_0"></div>
+
+                        </div>
+
+                    </div>
+                </div>
+
+
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+
+
+
+
+<script>
+    //#43EBEB
+    jQuery(document).ready(async function () {
+
+
+
+        $("#btnProcesarConsulta").click(function () {
+            $("#chart_div_0").html(null);
+            $("#sin_Data").hide();
+            ReportGantt()
+        });
+
+        function ReportGantt() {
+
+
+
+            var params = new Object();
+            params.dateFrom = $("#DateFrom").val();
+            params.dateTo = $("#DateFrom").val();
+            params.periods = $("#ddlPeriods").val();
+            params = JSON.stringify(params);
+
+
+            google.charts.load("current", { packages: ["timeline"] });
+            google.charts.setOnLoadCallback(drawChart);
+
+            $.ajax({
+                type: "POST",
+                url: "@Url.Action("NewChart", "ReportGantt")",
+                data: params,
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                async: true,
+                success: function (data) {
+                    drawChart(data)
+                },
+                error: function (XMLHttpRequest, textStatus, errorThrown) {
+                    console.log(XMLHttpRequest, textStatus, errorThrown);
+                }
+            });
+
+        }
+
+
+
+
+        function drawChart(data) {
+
+            var item_classifityColor = ['#CEBAB6', '#7E72FA', '#FF0000', '#96989A'];
+
+            var dataTable = new google.visualization.DataTable();
+            dataTable.addColumn({ type: 'string', id: 'UsuarioX' });
+            dataTable.addColumn({ type: 'string', id: 'Aplicación' });
+            dataTable.addColumn({ type: 'string', role: 'tooltip' });
+            dataTable.addColumn({ type: 'string', role: 'style' });
+            dataTable.addColumn({ type: 'date', id: 'Start' });
+            dataTable.addColumn({ type: 'date', id: 'End' });
+
+            //esta columna la usaremos para el tooltip
+
+
+
+            $.each(data, function (keyData, valueData) {
+                var NameUserLocal = valueData.UserName;
+
+                $.each(valueData.ReportSytems, function (keyReport, valueReport) {
+
+                    var date1 = moment(valueReport.FocusTimeT, 'YYYY-MM-DD HH:mm:ss');
+                    var date2 = moment(valueReport.DateEnd, 'YYYY-MM-DD HH:mm:ss');
+
+                    
+
+                    
+
+                    var show_info = '<div class=\"google-visualization-tooltip\" style=\"width: 240px;\"><ul class=\"google-visualization-tooltip-item-list\"><li class=\"google-visualization-tooltip-item\"><span style=\"font-family:Arial;font-size:12px;color:#000000;opacity:1;margin:0;\">' +
+                        '<u>' + (valueReport.AppImproName + "</u> </br> " + valueReport.ApplicationT) + '</span></li></ul><div class=\"google-visualization-tooltip-separator\"></div><ul class=\"google-visualization-tooltip-action-list\"><li data-logicalname=\"action#\" class=\"google-visualization-tooltip-action\">' +
+                        '<span style=\"font-family:Arial;font-size:12px;color:#000000;opacity:1;margin:0;font-style:none;text-decoration:none;font-weight:bold;\">Fecha Desde: </span><span style=\"font-family:Arial;font-size:12px;color:#000000;opacity:1;margin:0;font-style:none;text-decoration:none;font-weight:none;\"> ' + date1.format('LTS')+'</span></li><li data-logicalname=\"action#\" class=\"google-visualization-tooltip-action\">' +
+                        '<span style=\"font-family:Arial;font-size:12px;color:#000000;opacity:1;margin:0;font-style:none;text-decoration:none;font-weight:bold;\">Fecha Hasta: </span><span style=\"font-family:Arial;font-size:12px;color:#000000;opacity:1;margin:0;font-style:none;text-decoration:none;font-weight:none;\"> ' + date2.format('LTS')+'</span></li><li data-logicalname=\"action#\" class=\"google-visualization-tooltip-action\">' +
+                        '<span style=\"font-family:Arial;font-size:12px;color:#000000;opacity:1;margin:0;font-style:none;text-decoration:none;font-weight:bold;\">Duración:</span><span style=\"font-family:Arial;font-size:12px;color:#000000;opacity:1;margin:0;font-style:none;text-decoration:none;font-weight:none;\"> ' + valueReport.MessageDuration+' </span></li></ul></div>';
+                    //este es para tratar de personalizar el tooltip pero no agarra
+                    //no agarra y se descuadra los colores para pintar segun si es productiva o improductiova
+
+                    //No, este de duration es predeterminada de la libreria
+
+                    dataTable.addRows([
+                        [valueData.UserName, (valueReport.AppImproName + " | " + valueReport.Application), show_info, item_classifityColor[valueReport.AppsImproClassify], date1.toDate(), date2.toDate()]
+                    ]);
+                });
+            });
+
+            var paddingHeight = 50;
+
+            // the natural height of all rows combined
+            var rowHeight = dataTable.getNumberOfRows() * 12;
+
+            // set the total chart height
+            var chartHeight = rowHeight + paddingHeight;
+
+            var options = {
+                height: /*chartHeight*/350,
+                //timeline: { colorByRowLabel: false, showBarLabels: false, showRowLabels: false },
+                timeline: {  showBarLabels: false},
+                //colors: ['#CEBAB6', '#7E72FA', '#FF0000', '#96989A'],
+                tooltip: { isHtml: true },
+            };
+
+            var container = document.getElementById('chart_div_0');
+            var chart = new google.visualization.Timeline(container);
+
+            if ((dataTable.getNumberOfRows() <= 0)) {
+                $("#sin_Data").show();
+            } else {
+                $("#sin_Data").hide();
+                chart.draw(dataTable, options);
+            }
+
+
+
+
+
+
+        }
+
+
+
+
+    });
+
+</script>
+
+
+
